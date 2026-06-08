@@ -848,7 +848,7 @@ character_from_pyobj(character* v, PyObject *obj, const char *errmess) {
         }
         describe_obj = f2py_describe_obj(obj);
         if (describe_obj) {
-            PyErr_Format(err, "%s -- expected str|bytes|sequence-of-str-or-bytes, got %U", errmsg, describe_obj);
+            PyErr_Format(err, "%s -- expected str|bytes|sequence-of-str-or-bytes, got %U", errmess, describe_obj);
             Py_DECREF(describe_obj);
         }
         Py_DECREF(err);

@@ -241,7 +241,7 @@ format_def(FortranDataDef def)
 {
     int i;
     PyObject *out=NULL, *ranks_str=NULL;
-    ranks_str = PyUnicode_FromFormat(NULL, 0);
+    ranks_str = PyUnicode_FromStringAndSize(NULL, 0);
     if (!ranks_str) return NULL;
     for (i = 1; i < def.rank; i++) {
         PyObject *part = PyUnicode_FromFormat(",%" NPY_INTP_FMT, def.dims.d[i]);
@@ -264,7 +264,7 @@ fortran_doc(FortranDataDef def)
 {
     if (def.rank == -1) {
         if (def.doc) {
-            return PyUnicode_FromString(def.doc);
+            return PyUnicode_FromFormat("%s\n", def.doc);
         }
         else {
             return PyUnicode_FromFormat("%s - no docs available\n", def.name);
@@ -283,7 +283,7 @@ fortran_doc(FortranDataDef def)
         if (!formatted_def) return NULL;
         d = PyArray_DescrFromType(def.type);
         if (d) {
-            s = PyUnicode_FromFormat("%s : '%c'-%U", def.name, d->type, formatted_def);
+            s = PyUnicode_FromFormat("%s : '%c'-%U\n", def.name, d->type, formatted_def);
         }
         Py_DECREF(d);
         Py_DECREF(formatted_def);
@@ -1018,7 +1018,7 @@ ndarray_from_pyobj(const int type_num,
                     elsize, (npy_intp)PyArray_ITEMSIZE(arr));
                 if (!extra_msg) goto end_intent_err_handling;
                 PyUnicode_AppendAndDel(&msg, extra_msg);
-                if (msg) goto end_intent_err_handling;
+                if (!msg) goto end_intent_err_handling;
             }
             if (!(ARRAY_ISCOMPATIBLE(arr, type_num))) {
                 extra_msg = PyUnicode_FromFormat(
@@ -1026,7 +1026,7 @@ ndarray_from_pyobj(const int type_num,
                     PyArray_DESCR(arr)->type, descr->type);
                 if (!extra_msg) goto end_intent_err_handling;
                 PyUnicode_AppendAndDel(&msg, extra_msg);
-                if (msg) goto end_intent_err_handling;
+                if (!msg) goto end_intent_err_handling;
             }
             if (!(F2PY_CHECK_ALIGNMENT(arr, intent))) {
                 extra_msg = PyUnicode_FromFormat(
@@ -1034,7 +1034,7 @@ ndarray_from_pyobj(const int type_num,
                     F2PY_GET_ALIGNMENT(intent));
                 if (!extra_msg) goto end_intent_err_handling;
                 PyUnicode_AppendAndDel(&msg, extra_msg);
-                if (msg) goto end_intent_err_handling;
+                if (!msg) goto end_intent_err_handling;
             }
             PyErr_SetObject(PyExc_ValueError, msg);
             end_intent_err_handling:
@@ -1350,7 +1350,7 @@ copy_ND_array(const PyArrayObject *arr, PyArrayObject *out)
 /********************* Various utility functions ***********************/
 
 PyObject *f2py_describe_obj(PyObject *obj) {
-    PyObject *result;
+    PyObject *result = NULL;
     void *tp_name = GET_TP_NAME(obj);
     if (!tp_name) return NULL;
     if (PyArray_CheckScalar(obj)) {
